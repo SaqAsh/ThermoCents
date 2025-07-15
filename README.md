@@ -74,3 +74,6 @@ ThermoCents/
 -   **Database**: AWS DynamoDB (planned)
 -   **IoT**: AWS IoT Core + MQTT (planned)
 -   **Firmware**: ESP32 + FreeRTOS (planned)
+
+
+Salam monsieur
