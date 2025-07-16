@@ -37,18 +37,20 @@ const useBackground = (): RefObject<HTMLCanvasElement | null> => {
 		];
 
 		const animate = () => {
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			// Clear with darker background
+			ctx.fillStyle = "rgba(0, 0, 0, 0.95)"; // Very dark background
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-			// Create gradient
+			// Create gradient with much higher opacity for better visibility
 			const gradient = ctx.createLinearGradient(
 				0,
 				0,
 				canvas.width,
 				canvas.height
 			);
-			gradient.addColorStop(0, "rgba(34, 197, 94, 0.1)"); // green-500 with opacity
-			gradient.addColorStop(0.5, "rgba(34, 197, 94, 0.05)");
-			gradient.addColorStop(1, "rgba(34, 197, 94, 0.02)");
+			gradient.addColorStop(0, "rgba(34, 197, 94, 0.6)"); // green-500 with much higher opacity
+			gradient.addColorStop(0.5, "rgba(34, 197, 94, 0.3)");
+			gradient.addColorStop(1, "rgba(34, 197, 94, 0.15)");
 
 			// Draw waves
 			waves.forEach((wave, index) => {
@@ -77,7 +79,7 @@ const useBackground = (): RefObject<HTMLCanvasElement | null> => {
 				ctx.closePath();
 
 				ctx.fillStyle = gradient;
-				ctx.globalAlpha = 0.3 - index * 0.1;
+				ctx.globalAlpha = 0.8 - index * 0.2; // Much higher opacity for better visibility
 				ctx.fill();
 			});
 
