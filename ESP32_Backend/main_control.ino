@@ -7,13 +7,13 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define DHTPIN 4     // Digital pin connected to the DHT sensor
-#define DHTTYPE DHT11   // DHT 11
+#define DHTPIN 4     // pin connected to the DHT sensor
+//#define DHTTYPE DHT11   // DHT 11                                                                         #commented out
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define OLED_RESET     3 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32                 #verify
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // REPLACE WITH YOUR NETWORK CREDENTIALS
@@ -78,9 +78,8 @@ void notFound(AsyncWebServerRequest *request) {
 // Start webserver on port 80
 AsyncWebServer server(80);
 
-// Replaces placeholder with DHT11 values
+// Appears to replace placeholder text with DHT11 values
 String processor(const String& var){
-  //Serial.println(var);
   if(var == "TEMPERATURE"){
     return lastTemperature;
   }
@@ -92,39 +91,45 @@ String processor(const String& var){
 
 const char* PARAM_INPUT_1 = "threshold_input";
 
-// GPIO where the relay output is connected to
-const int output = 5;
+// GPIO where the relay output is connected to some device (heater?)
+const int outputPin = 5;
 
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
+
   Serial.begin(115200);
+
   if (!WiFi.config(local_IP, gateway, subnet)) {
     Serial.println("STA Failed to configure");
   }
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
+
   if (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.println("WiFi Failed!");
     return;
   }
+
   Serial.println();
   Serial.print("ESP IP Address: http://");
   Serial.println(WiFi.localIP());
   
   // Set digital output for relay control
-  pinMode(output, OUTPUT);
-  digitalWrite(output, LOW);
+  pinMode(outputPin, OUTPUT);
+  digitalWrite(outputPin, LOW);
   
   // Initialize and clear the display buffer
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
+
   display.clearDisplay();
 
   // Start the DHT11 sensor
- dht.begin();
+  dht.begin();
   
   // Send web page to client
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -133,13 +138,16 @@ void setup() {
 
   // Receive an HTTP GET request at <ESP_IP>/get?threshold_input=<inputMessage>&enable_arm_input=<inputMessage2>
   server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    
     // GET threshold_input value on <ESP_IP>/get?threshold_input=<inputMessage>
     if (request->hasParam(PARAM_INPUT_1)) {
       inputMessage = request->getParam(PARAM_INPUT_1)->value();
     }
+
     Serial.println(inputMessage);
     request->send(200, "text/html", "Set temp updated.<br><a href=\"/\">Return to Home Page</a>");
   });
+
   server.onNotFound(notFound);
   server.begin();
 }
@@ -150,15 +158,18 @@ void loop() {
   int temperature = dht.readTemperature(true);
   lastTemperature = String(temperature);
   Serial.println(temperature);
+
   // Check if temperature is above threshold and if it needs to trigger output
   if(temperature > inputMessage.toInt()){
     String message = String("Temperature above threshold. Current temperature: ") + 
                           String(temperature) + String("F");
+
     Serial.println(message);
     digitalWrite(output, LOW);
     Serial.println("output low");
   }
-    // Check if temperature is below threshold and if it needs to trigger output
+
+  // Check if temperature is below threshold and if it needs to trigger output
   else if((temperature < inputMessage.toInt())) {
     String message = String("Temperature below threshold. Current temperature: ") + 
                           String(temperature) + String(" F");
@@ -166,6 +177,7 @@ void loop() {
     digitalWrite(output, HIGH);
     Serial.println("output high");
   }
+  // Format & show LCD display info
   display.setTextColor(WHITE); 
   display.setTextSize(1);
   display.setCursor(1,25);
