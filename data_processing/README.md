@@ -42,7 +42,20 @@ With UV:
 uv sync
 ```
 
-### 3. Verify Installation
+### 3. Configure VS Code Python Interpreter
+
+Set VS Code to use the virtual environment's Python interpreter:
+
+1. Open VS Code in the `data_processing` directory
+2. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
+3. Type "Python: Select Interpreter"
+4. Choose the interpreter from your `.venv` folder:
+    - **macOS/Linux**: `./venv/bin/python`
+    - **Windows**: `.\.venv\Scripts\python.exe`
+
+Alternatively, you can click on the Python version in the bottom-left status bar and select the correct interpreter.
+
+### 4. Verify Installation
 
 Run the main script to verify everything is working:
 
