@@ -1,4 +1,6 @@
 def main():
+    """Main entry point for the data-processing module."""
+
     print("Hello from data-processing!")
 
 
