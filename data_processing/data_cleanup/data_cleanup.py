@@ -17,7 +17,7 @@ def remove_null_columns(df: pd.DataFrame) -> pd.DataFrame:
     # Treat empty strings as missing values before computing null counts
     df.replace("", pd.NA, inplace=True)
 
-    # counts of null elements per column
+    # counts of null elements in a column
     null_counts = df.isna().sum()
 
     # filtered null columns (columns where every value is null)
