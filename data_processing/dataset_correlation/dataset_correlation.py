@@ -1,5 +1,5 @@
 import pandas as pd
-#from typing import Dict, Tuple 
+from typing import Dict 
 
 def get_season(date: pd.Timestamp) -> str:
     """Return the season that a given timestamp falls into using the Northern Hemisphere monthly seasonal classification.
