@@ -74,12 +74,36 @@ data_processing/
 ├── date_processing/          # Date processing utilities
 │   └── date_processing.py    # Date manipulation functions
 ├── kaggle_data/             # Sample energy datasets
-│   ├── belgium.csv          # Belgium energy data
+│   ├── chievres.csv         # Chievres Airport weather data
 │   ├── KAG_energydata_complete.csv  # Complete energy dataset
-│   └── toronto.csv          # Toronto energy data
+│   └── toronto.csv          # Toronto weather data
 └── tutorial_testing/        # Testing and tutorial notebooks
     └── notebook.ipynb       # Jupyter notebook for testing
 ```
+
+### Running Jupyter Notebook
+
+To run Jupyter notebooks for interactive data analysis:
+
+```bash
+# Make sure your virtual environment is activated
+source .venv/bin/activate
+
+# Install dependencies if you haven't already
+uv sync
+
+# Start Jupyter notebook
+jupyter notebook
+```
+
+This will start a local server (usually at http://localhost:8888) where you can:
+
+-   Navigate to your notebooks (like `main.ipynb`)
+-   Run interactive data analysis
+-   Create visualizations and explore your datasets
+-   Work with the ThermoCents energy and weather data
+
+**Note**: If you're using WSL, you may see some browser-related permission errors in the terminal. These are normal and don't affect functionality - just manually open the URL in your browser.
 
 ### Running Tests
 
