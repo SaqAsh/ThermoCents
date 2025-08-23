@@ -1,5 +1,6 @@
 import pandas as pd
-from typing import Dict 
+from typing import Dict
+
 
 def get_season(date: pd.Timestamp) -> str:
     """Return the season that a given timestamp falls into using the Northern Hemisphere monthly seasonal classification.
@@ -29,9 +30,11 @@ def get_season(date: pd.Timestamp) -> str:
         return "Fall"
     else:
         return "Winter"
-    
-def find_seasonal_correlation(toronto_df: pd.DataFrame, chievres_df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
 
+
+def find_seasonal_correlation(
+    toronto_df: pd.DataFrame, chievres_df: pd.DataFrame
+) -> Dict[str, pd.DataFrame]:
     """Calculate seasonal Pearson correlations between Toronto and Chievres Airport weather data.
 
     Args:
@@ -44,32 +47,37 @@ def find_seasonal_correlation(toronto_df: pd.DataFrame, chievres_df: pd.DataFram
     # ensure both dataframes have datetime index by replacing exisitng indices with datetime indices
     toronto_df.index = pd.to_datetime(toronto_df.index)
     chievres_df.index = pd.to_datetime(chievres_df.index)
-    
+
     # add season column to both dataframes
-    toronto_df['season'] = toronto_df.index.map(get_season)
-    chievres_df['season'] = chievres_df.index.map(get_season)
+    toronto_df["season"] = toronto_df.index.map(get_season)
+    chievres_df["season"] = chievres_df.index.map(get_season)
 
     # dictionary to store seasonal correlation coefficients
     seasonal_correlations = {}
 
-    # iterate through dataframes and calculate correlations for each season 
-    for season in ['Spring', 'Summer', 'Fall', 'Winter']:
+    # iterate through dataframes and calculate correlations for each season
+    for season in ["Spring", "Summer", "Fall", "Winter"]:
         # filter dataframes for the current season (axis 1 drops the 'season' column after filtering)
-        toronto_season = toronto_df[toronto_df['season'] == season].drop('season', axis = 1)
-        chievres_season = chievres_df[chievres_df['season'] == season].drop('season', axis = 1)
+        toronto_season = toronto_df[toronto_df["season"] == season].drop(
+            "season", axis=1
+        )
+        chievres_season = chievres_df[chievres_df["season"] == season].drop(
+            "season", axis=1
+        )
 
         # create an empty DataFrame to hold the correlation coefficients with the same rows as toronto_season and columns as chievres_season
         correlation = pd.DataFrame(
-            index=toronto_season.columns,
-            columns=chievres_season.columns
+            index=toronto_season.columns, columns=chievres_season.columns
         )
 
         # calculate Pearson correlation for each pair of matching columns
         for tor_col in toronto_season.columns:
             for chievres_col in chievres_season.columns:
-                correlation.loc[tor_col, chievres_col] = toronto_season[tor_col].corr(chievres_season[chievres_col])
-        
+                correlation.loc[tor_col, chievres_col] = toronto_season[tor_col].corr(
+                    chievres_season[chievres_col]
+                )
+
         # each entry in the seasonal_correlations dictionary has a DataFrame of coefficients with the season as the key
         seasonal_correlations[season] = correlation
-    
+
     return seasonal_correlations
