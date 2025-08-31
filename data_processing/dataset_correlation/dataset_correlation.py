@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pandas as pd
 
 def get_season(date: pd.Timestamp) -> str:

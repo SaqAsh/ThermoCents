@@ -39,8 +39,6 @@ def strip_date_components(
             df_copy[col_name] = df_copy[col_name].dt.strftime("%m-%d")
         case "day":
             df_copy[col_name] = df_copy[col_name].dt.strftime("%d")
-        case _:
-            raise ValueError("Invalid granularity level")
 
     return df_copy
 
@@ -80,4 +78,19 @@ def sort_and_truncate_to_min_date_range(
     return df1, df2
 
 
+def average_date_range(
+    df: pd.DataFrame, date_col_name: str, start_date: str, end_date: str
+) -> pd.DataFrame:
+    """Average the values in a column over a specified date range.
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        date_col_name (str): The name of the date column.
+        start_date (str): The start date of the range.
+        end_date (str): The end date of the range.
+    Returns:
+        pd.DataFrame: The DataFrame with the average of the values in the specified column over the specified date range.
+    """
 
+    return df[
+        (df[date_col_name] >= start_date) & (df[date_col_name] <= end_date)
+    ].mean()
