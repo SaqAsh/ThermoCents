@@ -1,24 +1,26 @@
-#include <WiFi.h>
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include "DHT.h"
-#include <SPI.h>
-#include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <SPI.h>
+#include <WiFi.h>
+#include <Wire.h>
 
-#define DHTPIN 4     // pin connected to the DHT sensor
-//#define DHTTYPE DHT11   // DHT 11                                                                         #commented out
+#include "DHT.h"
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define OLED_RESET     3 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32                 #verify
+#define DHTPIN 4  // pin connected to the DHT sensor
+// #define DHTTYPE DHT11   // DHT 11 #commented out
+
+#define SCREEN_WIDTH 128  // OLED display width, in pixels
+#define SCREEN_HEIGHT 32  // OLED display height, in pixels
+#define OLED_RESET 3      // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS \
+  0x3C  ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32 #verify
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // REPLACE WITH YOUR NETWORK CREDENTIALS
-const char* ssid = "YOUR SSID HERE";
-const char* password = "YOUR PASSWORD HERE";
+const char* ssid = "ESP32";
+const char* password = "12345678";
 
 // Set your static IP address
 IPAddress local_IP(192, 168, 1, 200);
@@ -31,7 +33,7 @@ String inputMessage = "70";
 String lastTemperature;
 
 // HTML web page to handle 2 input fields (threshold_input, enable_arm_input)
-const char index_html[] PROGMEM = R"rawliteral(
+const char HTML_LandingPage[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html><head>
   <title>Temperature Threshold Output Control</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -71,7 +73,8 @@ const char index_html[] PROGMEM = R"rawliteral(
   </form>
 </body></html>)rawliteral";
 
-void notFound(AsyncWebServerRequest *request) {
+// to display a 404 error message
+void notFound(AsyncWebServerRequest* request) {
   request->send(404, "text/plain", "Not found");
 }
 
@@ -79,11 +82,10 @@ void notFound(AsyncWebServerRequest *request) {
 AsyncWebServer server(80);
 
 // Appears to replace placeholder text with DHT11 values
-String processor(const String& var){
-  if(var == "TEMPERATURE"){
+String processor(const String& var) {
+  if (var == "TEMPERATURE") {
     return lastTemperature;
-  }
-  else if(var == "THRESHOLD"){
+  } else if (var == "THRESHOLD") {
     return inputMessage;
   }
   return String();
@@ -97,7 +99,6 @@ const int outputPin = 5;
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
-
   Serial.begin(115200);
 
   if (!WiFi.config(local_IP, gateway, subnet)) {
@@ -115,37 +116,41 @@ void setup() {
   Serial.println();
   Serial.print("ESP IP Address: http://");
   Serial.println(WiFi.localIP());
-  
+
   // Set digital output for relay control
   pinMode(outputPin, OUTPUT);
   digitalWrite(outputPin, LOW);
-  
+
   // Initialize and clear the display buffer
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for (;;);  // Don't proceed, loop forever
   }
 
   display.clearDisplay();
 
   // Start the DHT11 sensor
   dht.begin();
-  
+
   // Send web page to client
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html, processor);
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+    request->send_P(200, "text/html", HTML_LandingPage, processor);
   });
 
-  // Receive an HTTP GET request at <ESP_IP>/get?threshold_input=<inputMessage>&enable_arm_input=<inputMessage2>
-  server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    
+  // Receive an HTTP GET request at
+  // <ESP_IP>/get?threshold_input=<inputMessage>&enable_arm_input=<inputMessage2>
+  // (a field in the web page form)
+
+  server.on("/get", HTTP_GET, [](AsyncWebServerRequest* request) {
     // GET threshold_input value on <ESP_IP>/get?threshold_input=<inputMessage>
+    // PARAM_INPUT_1 defined as "threshold_input" in the web page
     if (request->hasParam(PARAM_INPUT_1)) {
       inputMessage = request->getParam(PARAM_INPUT_1)->value();
     }
 
     Serial.println(inputMessage);
-    request->send(200, "text/html", "Set temp updated.<br><a href=\"/\">Return to Home Page</a>");
+    request->send(200, "text/html",
+                  "Set temp updated.<br><a href=\"/\">Return to Home Page</a>");
   });
 
   server.onNotFound(notFound);
@@ -153,16 +158,17 @@ void setup() {
 }
 
 void loop() {
-  delay(2000); 
+  delay(2000);
   display.clearDisplay();
   int temperature = dht.readTemperature(true);
   lastTemperature = String(temperature);
   Serial.println(temperature);
 
   // Check if temperature is above threshold and if it needs to trigger output
-  if(temperature > inputMessage.toInt()){
-    String message = String("Temperature above threshold. Current temperature: ") + 
-                          String(temperature) + String("F");
+  if (temperature > inputMessage.toInt()) {
+    String message =
+        String("Temperature above threshold. Current temperature: ") +
+        String(temperature) + String("F");
 
     Serial.println(message);
     digitalWrite(output, LOW);
@@ -170,22 +176,23 @@ void loop() {
   }
 
   // Check if temperature is below threshold and if it needs to trigger output
-  else if((temperature < inputMessage.toInt())) {
-    String message = String("Temperature below threshold. Current temperature: ") + 
-                          String(temperature) + String(" F");
+  else if ((temperature < inputMessage.toInt())) {
+    String message =
+        String("Temperature below threshold. Current temperature: ") +
+        String(temperature) + String(" F");
     Serial.println(message);
     digitalWrite(output, HIGH);
     Serial.println("output high");
   }
   // Format & show LCD display info
-  display.setTextColor(WHITE); 
+  display.setTextColor(WHITE);
   display.setTextSize(1);
-  display.setCursor(1,25);
+  display.setCursor(1, 25);
   display.print("Set ");
   display.print(inputMessage);
-  display.setTextColor(WHITE); 
+  display.setTextColor(WHITE);
   display.setTextSize(4);
-  display.setCursor(64,5);
+  display.setCursor(64, 5);
   display.print(temperature);
   display.display();
 }
